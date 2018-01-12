@@ -19,6 +19,11 @@ module.exports = Choropleth = {
     this.minScaleColor = config.minScaleColor;
     this.maxScaleColor = config.maxScaleColor;
 
+    this.tooltipConfig = Object.assign({
+      prefix: '',
+      suffix: ''
+    }, config.tooltip);
+
     var margin = {
       top: 20,
       right: 10,
@@ -74,7 +79,7 @@ module.exports = Choropleth = {
         tooltipData.name,
         '</div>',
         '<div class="tooltip-item">',
-          'prefix : ' + number + ' suffix',
+          this.tooltipConfig.prefix + number + this.tooltipConfig.suffix,
         '</div>',
       ].join('\n');
 
