@@ -4,12 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepublish": "npm run build",
+    "build": "browserify index.js -s Choropleth -o dist/main.js"
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com:alter-eco/choropleth.git"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "laurencedorman",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^15.1.0"
+  }
 }
