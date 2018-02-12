@@ -10,19 +10,30 @@ module.exports = Choropleth = {
   },
 
   init: function(config) {
-    this.neutralColor = config.neutralColor;
     this.geojson = config.geojson;
     this.valueColumn = config.valueColumn;
     this.geoIdKey = config.geoIdKey;
-    this.legendFormat = config.legendFormat;
 
-    this.minScaleColor = config.minScaleColor;
-    this.maxScaleColor = config.maxScaleColor;
+    this.config = {};
 
-    this.tooltipConfig = Object.assign({
-      prefix: '',
-      suffix: ''
-    }, config.tooltip);
+    this.config.neutralColor = config.neutralColor;
+
+    if (config.numericalValues === false) {
+      this.config.numericalValues = config.numericalValues;
+    }
+    else {
+      this.config.numericalValues = true;
+    }
+
+    this.config.legend = Object.assign({
+      orientation: 'vertical',
+    }, config.legend);
+
+    this.config.scale = Object.assign({
+      type: 'linear',
+      minColor: 'blue',
+      maxColor: 'red'
+    }, config.scale);
 
     var margin = {
       top: 20,
@@ -48,20 +59,27 @@ module.exports = Choropleth = {
       .attr('id', 'layer');
 
     this.g = this.map.append('g')
-      .attr('class', 'key')
-      .attr('transform', 'translate(0,' + (this.height - 30) + ')');
+      .attr('class', 'key');
 
     this.setData(config.data);
 
-    this.tooltip = d3.select('body').append('div')
-      .attr('class', 'tooltip')
-      .style('opacity', 0);
 
     this.map.call(d3.zoom()
       .on('zoom', function() {
         this.layer.attr('transform', d3.event.transform);
       }.bind(this))
     );
+
+    if (config.tooltip && config.tooltip.enabled !== false) {
+      this.config.tooltip = Object.assign({
+        prefix: '',
+        suffix: ''
+      }, config.tooltip);
+
+      this.tooltip = d3.select('body').append('div')
+        .attr('class', 'tooltip')
+        .style('opacity', 0);
+    }
   },
 
   prototype: {
@@ -76,10 +94,10 @@ module.exports = Choropleth = {
 
       var markup = [
         '<div class="tooltip-title" style="background-color:' + this.scale(tooltipData[this.valueColumn]) + '">',
-        tooltipData.name,
+          tooltipData.name || tooltipData[this.geoIdKey],
         '</div>',
         '<div class="tooltip-item">',
-          this.tooltipConfig.prefix + number + this.tooltipConfig.suffix,
+          this.config.tooltip.prefix + number + this.config.tooltip.suffix,
         '</div>',
       ].join('\n');
 
@@ -101,7 +119,7 @@ module.exports = Choropleth = {
         return this.scale(this.dataById[geoKey][this.valueColumn]);
       }
 
-      return this.neutralColor;
+      return this.config.neutralColor;
     },
 
     setData: function(data) {
@@ -110,7 +128,9 @@ module.exports = Choropleth = {
       this.dataById = {};
 
       this.data.forEach(function(datum) {
-        datum[this.valueColumn] = parseInt(datum[this.valueColumn]);
+        if (this.config.numericalValues) {
+          datum[this.valueColumn] = parseInt(datum[this.valueColumn]);
+        }
 
         this.dataById[datum[this.geoIdKey]] = datum;
       }.bind(this));
@@ -119,17 +139,21 @@ module.exports = Choropleth = {
     },
 
     updateLegend: function() {
-      var legendLinear = d3.legendColor()
-        .labelFormat(d3.format(this.legendFormat))
+      var legend = d3.legendColor()
+        .labelFormat(d3.format(this.config.legend.format))
         .shapeWidth(50)
-        .orient('horizontal')
+        .orient(this.config.legend.orientation)
         .scale(this.scale);
 
       this.map.select('.key g')
         .remove();
 
-      this.map.select('.key')
-        .call(legendLinear);
+
+      var legendSelection = this.map.select('.key');
+
+      legendSelection.call(legend);
+
+      legendSelection.attr('transform', 'translate(0,' + (this.height - legendSelection.node().getBBox().height) + ')')
     },
 
     setScale: function() {
@@ -137,15 +161,30 @@ module.exports = Choropleth = {
         return datum[this.valueColumn];
       }.bind(this));
 
-      var min = d3.min(scaleData);
-      var max = d3.max(scaleData);
+      if (this.config.scale.type === 'linear') {
+        var min = d3.min(scaleData);
+        var max = d3.max(scaleData);
 
-      this.scale = d3.scaleLinear()
-        .domain([min, max])
-        .range([this.minScaleColor, this.maxScaleColor]);
+        this.scale = d3.scaleLinear()
+          .domain([min, max])
+          .range([this.config.scale.minColor, this.config.scale.maxColor]);
+      }
+      else if (this.config.scale.type === 'ordinal') {
+        var domain = {};
+
+        scaleData.forEach(function(item) {
+          domain[item];
+        });
+
+        domain = Object.keys(domain);
+
+        this.scale = d3.scaleOrdinal()
+          .domain(domain)
+          .range(this.config.scale.colors)
+      }
 
       setTimeout(function() {
-      this.updateLegend();
+        this.updateLegend();
       }.bind(this), 0)
     },
 
@@ -172,6 +211,10 @@ module.exports = Choropleth = {
         })
         .attr('fill', this.fill.bind(this))
         .on('mouseover', function(d) {
+          if (!this.tooltip) {
+            return false;
+          }
+
           var tooltipData = this.dataById[d.properties[this.geoIdKey]];
 
           if (!tooltipData || tooltipData[this.selected] === '') {
@@ -181,6 +224,10 @@ module.exports = Choropleth = {
           }
         }.bind(this))
         .on('mouseout', function() {
+          if (!this.tooltip) {
+            return false;
+          }
+
           this.hideTooltip();
         }.bind(this))
 
