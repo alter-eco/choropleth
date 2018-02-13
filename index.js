@@ -63,7 +63,6 @@ module.exports = Choropleth = {
 
     this.setData(config.data);
 
-
     this.map.call(d3.zoom()
       .on('zoom', function() {
         this.layer.attr('transform', d3.event.transform);
@@ -162,12 +161,24 @@ module.exports = Choropleth = {
       }.bind(this));
 
       if (this.config.scale.type === 'linear') {
-        var min = d3.min(scaleData);
-        var max = d3.max(scaleData);
+        var domain;
+        var range;
+
+        if (this.config.scale.colors) {
+          domain = this.config.scale.domain;
+          range = this.config.scale.colors;
+        }
+        else {
+          var min = d3.min(scaleData);
+          var max = d3.max(scaleData);
+
+          domain = [min, max];
+          range = [this.config.scale.minColor, this.config.scale.maxColor];
+        }
 
         this.scale = d3.scaleLinear()
-          .domain([min, max])
-          .range([this.config.scale.minColor, this.config.scale.maxColor]);
+          .domain(domain)
+          .range(range);
       }
       else if (this.config.scale.type === 'ordinal') {
         var domain = {};
