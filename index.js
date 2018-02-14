@@ -1,10 +1,28 @@
 var Choropleth;
 
+var eventablejs = require('eventablejs');
+
 module.exports = Choropleth = {
   create: function() {
-    var instance = Object.assign({}, this.prototype);
+    var instance = Object.assign({}, eventablejs, this.prototype);
 
     this.init.apply(instance, arguments);
+
+    Object.keys(this.prototype).forEach(function(methodName) {
+      var placeholder = instance[methodName];
+
+      var methodNameCaps = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+
+      instance[methodName] = function() {
+        instance.trigger('before' + methodNameCaps);
+
+        var result = placeholder.apply(instance, arguments);
+
+        instance.trigger('after' + methodNameCaps, result);
+
+        return result;
+      };
+    }.bind(instance));
 
     return instance;
   },
@@ -25,9 +43,14 @@ module.exports = Choropleth = {
       this.config.numericalValues = true;
     }
 
-    this.config.legend = Object.assign({
-      orientation: 'vertical',
-    }, config.legend);
+    if (config.legend) {
+      this.config.legend = Object.assign({
+        orientation: 'vertical',
+      }, config.legend);
+
+      this.on('beforeDraw', this.updateLegend);
+      this.on('afterSetScale', this.updateLegend);
+    }
 
     this.config.scale = Object.assign({
       type: 'linear',
@@ -45,8 +68,8 @@ module.exports = Choropleth = {
     var rawWidth = document.documentElement.clientWidth;
     var rawHeight = document.documentElement.clientHeight;
 
-    this.width = rawWidth - margin.left - margin.right;
-    this.height = rawHeight - margin.top - margin.bottom;
+    this.width = this.drawWidth = rawWidth - margin.left - margin.right;
+    this.height = this.drawHeight = rawHeight - margin.top - margin.bottom;
 
     this.map = d3.select(config.elem)
       .append('svg')
@@ -69,7 +92,7 @@ module.exports = Choropleth = {
       }.bind(this))
     );
 
-    if (config.tooltip && config.tooltip.enabled !== false) {
+    if (config.tooltip) {
       this.config.tooltip = Object.assign({
         prefix: '',
         suffix: ''
@@ -138,6 +161,10 @@ module.exports = Choropleth = {
     },
 
     updateLegend: function() {
+      if (!this.config.legend) {
+        return false;
+      }
+
       var legend = d3.legendColor()
         .labelFormat(d3.format(this.config.legend.format))
         .shapeWidth(50)
@@ -147,12 +174,17 @@ module.exports = Choropleth = {
       this.map.select('.key g')
         .remove();
 
-
       var legendSelection = this.map.select('.key');
 
       legendSelection.call(legend);
 
-      legendSelection.attr('transform', 'translate(0,' + (this.height - legendSelection.node().getBBox().height) + ')')
+      var legendHeight = legendSelection.node().getBBox().height;
+
+      if (this.config.legend.reserveSpace) {
+        this.drawHeight = this.drawHeight - legendHeight;
+      }
+
+      legendSelection.attr('transform', 'translate(0,' + (this.height - legendHeight) + ')');
     },
 
     setScale: function() {
@@ -196,7 +228,7 @@ module.exports = Choropleth = {
 
       setTimeout(function() {
         this.updateLegend();
-      }.bind(this), 0)
+      }.bind(this), 0);
     },
 
     draw: function() {
@@ -204,7 +236,7 @@ module.exports = Choropleth = {
         .projection(d3.geoMercator()
           .fitExtent([
             [20, 20],
-            [this.width, this.height]
+            [this.drawWidth, this.drawHeight]
           ], this.geojson));
 
       this.layerSelect = this.layer

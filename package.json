@@ -15,5 +15,8 @@
   "license": "ISC",
   "devDependencies": {
     "browserify": "^15.1.0"
+  },
+  "dependencies": {
+    "eventablejs": "^1.0.5"
   }
 }
