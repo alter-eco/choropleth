@@ -213,22 +213,16 @@ module.exports = Choropleth = {
           .range(range);
       }
       else if (this.config.scale.type === 'ordinal') {
-        var domain = {};
+        // domain = _.uniq(scaleData);
 
-        scaleData.forEach(function(item) {
-          domain[item];
+        domain = scaleData.filter(function(value, index, self) {
+            return self.indexOf(value) === index;
         });
-
-        domain = Object.keys(domain);
 
         this.scale = d3.scaleOrdinal()
           .domain(domain)
-          .range(this.config.scale.colors)
+          .range(this.config.scale.colors);
       }
-
-      setTimeout(function() {
-        this.updateLegend();
-      }.bind(this), 0);
     },
 
     draw: function() {
@@ -273,8 +267,6 @@ module.exports = Choropleth = {
 
           this.hideTooltip();
         }.bind(this))
-
-      this.updateLegend();
     }
   }
 };
