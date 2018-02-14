@@ -6,8 +6,6 @@ module.exports = Choropleth = {
   create: function() {
     var instance = Object.assign({}, eventablejs, this.prototype);
 
-    this.init.apply(instance, arguments);
-
     Object.keys(this.prototype).forEach(function(methodName) {
       var placeholder = instance[methodName];
 
@@ -23,6 +21,8 @@ module.exports = Choropleth = {
         return result;
       };
     }.bind(instance));
+
+    this.init.apply(instance, arguments);
 
     return instance;
   },
