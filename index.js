@@ -213,8 +213,6 @@ module.exports = Choropleth = {
           .range(range);
       }
       else if (this.config.scale.type === 'ordinal') {
-        // domain = _.uniq(scaleData);
-
         domain = scaleData.filter(function(value, index, self) {
             return self.indexOf(value) === index;
         });
