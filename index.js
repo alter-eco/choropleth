@@ -268,3 +268,108 @@ module.exports = Choropleth = {
     }
   }
 };
+
+const Choropleth = {
+  create() {
+    const instance = Object.assign({}, nanobus(), this.prototype);
+
+    Object.keys(this.prototype).forEach(methodName => {
+      const placeholder = instance[methodName];
+
+      const methodNameCaps = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+
+      instance[methodName] = function() {
+        instance.emit('before' + methodNameCaps);
+
+        const result = placeholder.apply(instance, arguments);
+
+        instance.emit('after' + methodNameCaps, result);
+
+        return result;
+      };
+    });
+
+    this.init.apply(instance, arguments);
+
+    return instance;
+  },
+
+  init({ geojson, valueColumn, geoIdKey }) {
+    this.geojson = config.geojson;
+    this.valueColumn = config.valueColumn;
+    this.geoIdKey = config.geoIdKey;
+
+    this.config = {};
+
+    this.config.neutralColor = config.neutralColor;
+
+    if (config.numericalValues === false) {
+      this.config.numericalValues = config.numericalValues;
+    }
+    else {
+      this.config.numericalValues = true;
+    }
+
+    if (config.legend) {
+      this.config.legend = Object.assign({
+        orientation: 'vertical',
+      }, config.legend);
+
+      this.on('beforeDraw', this.updateLegend);
+      this.on('afterSetScale', this.updateLegend);
+    }
+
+    this.config.scale = Object.assign({
+      type: 'linear',
+      minColor: 'blue',
+      maxColor: 'red'
+    }, config.scale);
+
+    var margin = {
+      top: 20,
+      right: 10,
+      bottom: 20,
+      left: 10
+    };
+
+    var rawWidth = document.documentElement.clientWidth;
+    var rawHeight = document.documentElement.clientHeight;
+
+    this.width = this.drawWidth = rawWidth - margin.left - margin.right;
+    this.height = this.drawHeight = rawHeight - margin.top - margin.bottom;
+
+    this.map = d3.select(config.elem)
+      .append('svg')
+      .attr('width', this.width + margin.left + margin.right)
+      .attr('height', this.height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+    this.layer = this.map.append('g')
+      .attr('id', 'layer');
+
+    this.g = this.map.append('g')
+      .attr('class', 'key');
+
+    this.setData(config.data);
+
+    this.map.call(d3.zoom()
+      .on('zoom', function() {
+        this.layer.attr('transform', d3.event.transform);
+      }.bind(this))
+    );
+
+    if (config.tooltip) {
+      this.config.tooltip = Object.assign({
+        prefix: '',
+        suffix: ''
+      }, config.tooltip);
+
+      this.tooltip = d3.select('body').append('div')
+        .attr('class', 'tooltip')
+        .style('opacity', 0);
+    }
+  }
+};
+
+// export default

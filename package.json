@@ -14,9 +14,16 @@
   "author": "laurencedorman",
   "license": "ISC",
   "devDependencies": {
-    "browserify": "^15.1.0"
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.3",
+    "babel-preset-env": "^1.6.1",
+    "browserify": "^15.1.0",
+    "uglifyjs-webpack-plugin": "^1.2.2",
+    "webpack": "^4.0.1",
+    "webpack-cli": "^2.0.9"
   },
   "dependencies": {
-    "eventablejs": "^1.0.5"
+    "eventablejs": "^1.0.5",
+    "nanobus": "^4.3.3"
   }
 }
