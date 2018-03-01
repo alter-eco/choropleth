@@ -31,6 +31,7 @@ module.exports = Choropleth = {
     this.geojson = config.geojson;
     this.valueColumn = config.valueColumn;
     this.geoIdKey = config.geoIdKey;
+    this.projection = config.projection;
 
     this.config = {};
 
@@ -38,8 +39,7 @@ module.exports = Choropleth = {
 
     if (config.numericalValues === false) {
       this.config.numericalValues = config.numericalValues;
-    }
-    else {
+    } else {
       this.config.numericalValues = true;
     }
 
@@ -51,6 +51,13 @@ module.exports = Choropleth = {
       this.on('beforeDraw', this.updateLegend);
       this.on('afterSetScale', this.updateLegend);
     }
+
+    if (this.projection) {
+      this.projection = d3.geoConicConformalFrance()
+    } else {
+      this.projection = d3.geoMercator()
+    }
+
 
     this.config.scale = Object.assign({
       type: 'linear',
@@ -116,10 +123,10 @@ module.exports = Choropleth = {
 
       var markup = [
         '<div class="tooltip-title" style="background-color:' + this.scale(tooltipData[this.valueColumn]) + '">',
-          tooltipData.name || tooltipData[this.geoIdKey],
+        tooltipData.name || tooltipData[this.geoIdKey],
         '</div>',
         '<div class="tooltip-item">',
-          this.config.tooltip.prefix + number + this.config.tooltip.suffix,
+        this.config.tooltip.prefix + number + this.config.tooltip.suffix,
         '</div>',
       ].join('\n');
 
@@ -199,8 +206,7 @@ module.exports = Choropleth = {
         if (this.config.scale.colors) {
           domain = this.config.scale.domain;
           range = this.config.scale.colors;
-        }
-        else {
+        } else {
           var min = d3.min(scaleData);
           var max = d3.max(scaleData);
 
@@ -211,10 +217,9 @@ module.exports = Choropleth = {
         this.scale = d3.scaleLinear()
           .domain(domain)
           .range(range);
-      }
-      else if (this.config.scale.type === 'ordinal') {
+      } else if (this.config.scale.type === 'ordinal') {
         domain = scaleData.filter(function(value, index, self) {
-            return self.indexOf(value) === index;
+          return self.indexOf(value) === index;
         });
 
         this.scale = d3.scaleOrdinal()
@@ -222,10 +227,10 @@ module.exports = Choropleth = {
           .range(this.config.scale.colors);
       }
     },
-
     draw: function() {
+
       var path = d3.geoPath()
-        .projection(d3.geoMercator()
+        .projection(this.projection
           .fitExtent([
             [20, 20],
             [this.drawWidth, this.drawHeight]
