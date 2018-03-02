@@ -31,7 +31,6 @@ module.exports = Choropleth = {
     this.geojson = config.geojson;
     this.valueColumn = config.valueColumn;
     this.geoIdKey = config.geoIdKey;
-    this.projection = config.projection;
 
     if (config.projection) {
       this.projection = config.projection;
