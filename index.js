@@ -33,13 +33,21 @@ module.exports = Choropleth = {
     this.geoIdKey = config.geoIdKey;
     this.projection = config.projection;
 
+    if (config.projection) {
+      this.projection = config.projection;
+    }
+    else {
+      this.projection = d3.geoMercator();
+    }
+
     this.config = {};
 
     this.config.neutralColor = config.neutralColor;
 
     if (config.numericalValues === false) {
       this.config.numericalValues = config.numericalValues;
-    } else {
+    }
+    else {
       this.config.numericalValues = true;
     }
 
@@ -51,13 +59,6 @@ module.exports = Choropleth = {
       this.on('beforeDraw', this.updateLegend);
       this.on('afterSetScale', this.updateLegend);
     }
-
-    if (this.projection) {
-      this.projection = d3.geoConicConformalFrance()
-    } else {
-      this.projection = d3.geoMercator()
-    }
-
 
     this.config.scale = Object.assign({
       type: 'linear',
@@ -206,7 +207,8 @@ module.exports = Choropleth = {
         if (this.config.scale.colors) {
           domain = this.config.scale.domain;
           range = this.config.scale.colors;
-        } else {
+        }
+        else {
           var min = d3.min(scaleData);
           var max = d3.max(scaleData);
 
@@ -217,7 +219,8 @@ module.exports = Choropleth = {
         this.scale = d3.scaleLinear()
           .domain(domain)
           .range(range);
-      } else if (this.config.scale.type === 'ordinal') {
+      }
+      else if (this.config.scale.type === 'ordinal') {
         domain = scaleData.filter(function(value, index, self) {
           return self.indexOf(value) === index;
         });
@@ -259,7 +262,8 @@ module.exports = Choropleth = {
 
           if (!tooltipData || tooltipData[this.selected] === '') {
             return false;
-          } else {
+          }
+          else {
             this.showTooltip(tooltipData);
           }
         }.bind(this))
@@ -269,7 +273,7 @@ module.exports = Choropleth = {
           }
 
           this.hideTooltip();
-        }.bind(this))
+        }.bind(this));
     }
   }
 };
