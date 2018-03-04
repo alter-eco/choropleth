@@ -205,8 +205,6 @@ export class Choropleth {
       .enter()
       .append('path')
       .attr('d', path)
-      .attr('class', 'region')
-      .attr('id', d => d.properties.nom)
       .attr('fill', this.fill.bind(this))
       .on('mouseover', d => {
         if (!this.tooltip) {

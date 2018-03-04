@@ -19,10 +19,9 @@
     <script src="./dist/main.js"></script>
 
     <script>
-      Promise.all([
-        fetch('../geo/dist/france-departements.json')
-          .then(function(response) { return response.json(); })
-      ]).then(function([topojson]) {
+    fetch('../geo/dist/france-departements.json')
+      .then(function(response) { return response.json(); })
+      .then(function(topojson) {
         var data = [];
 
         var choropleth = Choropleth.create({
