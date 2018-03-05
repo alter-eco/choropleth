@@ -12,6 +12,10 @@
         margin: 0;
         padding: 0;
       }
+
+      path {
+        stroke: black;
+      }
     </style>
   </head>
   <body>
@@ -19,29 +23,22 @@
     <script src="./dist/main.js"></script>
 
     <script>
-    fetch('../geo/dist/france-departements.json')
-      .then(function(response) { return response.json(); })
-      .then(function(topojson) {
-        var data = [];
+      var data = [{
+        ISO3: 'DEU',
+        value: 1000
+      }];
 
-        var choropleth = Choropleth.create({
-          elem: '#container',
-          topojson: topojson,
-          geoIdKey: 'code',
-          data: data,
-          valueColumn: 'valeur',
-          neutralColor: '#ccc',
-          legend: {
-          },
-          scale: {
-            type: 'linear',
-            minColor: '#FFE25A',
-            maxColor: 'blue',
-          }
-        });
-
-        choropleth.draw();
-      }).catch(console.error);
+      Choropleth.create({
+        elem: '#container',
+        map: 'european-union',
+        data: data,
+        legend: true,
+        scale: {
+          type: 'linear',
+          minColor: '#FFE25A',
+          maxColor: 'blue',
+        }
+      });
     </script>
   </body>
 </html>

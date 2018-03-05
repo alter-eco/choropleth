@@ -5,23 +5,44 @@ import * as topojsonClient from 'topojson-client';
 
 import locale from './locale.json';
 
+import * as nanobus from 'nanobus';
+
+const mapConfig = {
+  'european-union': {
+    key: 'ISO3',
+    path: '../geo/dist/european-union.json'
+  }
+};
+
+function parseTopo(topojson) {
+  const topologyKey = Object.keys(topojson.objects)[0];
+
+  return topojsonClient.feature(topojson, topojson.objects[topologyKey]);
+}
+
 export class Choropleth {
   constructor(config) {
     this.format = d3.formatLocale(locale).format;
 
-    if (config.topojson) {
-      const topologyKey = Object.keys(config.topojson.objects)[0];
-      this.geojson = topojsonClient.feature(config.topojson, config.topojson.objects[topologyKey]);
+    if (config.map && mapConfig.hasOwnProperty(config.map)) {
+      this.geoIdKey = mapConfig[config.map].key;
+
+      this.mapFetch = fetch(mapConfig[config.map].path)
+        .then(res => res.json())
+        .then(topojson => this.geojson = parseTopo(topojson));
+    } else if (config.topojson) {
+      this.geoIdKey = config.geoIdKey;
+      this.geojson = this.geojson = parseTopo(config.topojson);
     } else if (config.geojson) {
+      this.geoIdKey = config.geoIdKey;
       this.geojson = config.geojson;
     }
 
-    this.valueColumn = config.valueColumn;
-    this.geoIdKey = config.geoIdKey;
+    this.valueColumn = config.valueColumn ? config.valueColumn : 'value';
 
     this.config = {};
 
-    this.config.neutralColor = config.neutralColor;
+    this.config.neutralColor = config.neutralColor ? config.neutralColor : '#ccc';
     this.config.numericalValues = !config.numericalValues === false;
 
     const margin = config.margin ? config.margin : 20;
@@ -71,6 +92,8 @@ export class Choropleth {
     }
 
     this.setData(config.data);
+
+    this.ready().then(() => { this.draw(); });
   }
 
   showTooltip(tooltipData) {
@@ -186,6 +209,14 @@ export class Choropleth {
     this.updateLegend();
   }
 
+  ready() {
+    if (this.mapFetch) {
+      return this.mapFetch;
+    }
+
+    return Promise.resolve();
+  }
+
   draw() {
     this.updateLegend();
 
@@ -228,3 +259,5 @@ export class Choropleth {
       });
   }
 }
+
+Object.assign(Choropleth.prototype, nanobus);
