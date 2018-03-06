@@ -16,19 +16,19 @@ function parseTopo(topojson) {
 }
 
 export class Choropleth extends Nanobus {
-  constructor(config) {
+  constructor(params) {
     super();
 
     this.format = d3.formatLocale(locale).format;
 
-    this.valueColumn = config.valueColumn ? config.valueColumn : 'value';
+    this.valueColumn = params.valueColumn ? params.valueColumn : 'value';
 
     this.config = {};
 
-    this.config.neutralColor = config.neutralColor ? config.neutralColor : '#ccc';
-    this.config.numericalValues = !config.numericalValues === false;
+    this.config.neutralColor = params.neutralColor ? params.neutralColor : '#ccc';
+    this.config.numericalValues = !params.numericalValues === false;
 
-    const margin = config.margin ? config.margin : 20;
+    const margin = params.margin ? params.margin : 20;
 
     const rawWidth = document.documentElement.clientWidth;
     const rawHeight = document.documentElement.clientHeight;
@@ -36,7 +36,7 @@ export class Choropleth extends Nanobus {
     this.width = this.drawWidth = rawWidth - (margin * 2);
     this.height = this.drawHeight = rawHeight - (margin * 2);
 
-    this.map = d3.select(config.elem)
+    this.map = d3.select(params.elem)
       .append('svg')
       .attr('width', this.width + (margin * 2))
       .attr('height', this.height + (margin * 2))
@@ -47,14 +47,14 @@ export class Choropleth extends Nanobus {
       .append('g')
       .attr('id', 'layer');
 
-    if (config.legend) {
+    if (params.legend) {
       this.g = this.map.append('g')
         .attr('class', 'legend');
 
       this.config.legend = Object.assign({
         orientation: 'vertical',
         format: '.02f'
-      }, config.legend);
+      }, params.legend);
 
       this.on('setScale', () => this.updateLegend());
       this.on('draw', () => this.updateLegend());
@@ -64,13 +64,13 @@ export class Choropleth extends Nanobus {
       type: 'linear',
       minColor: 'blue',
       maxColor: 'red'
-    }, config.scale);
+    }, params.scale);
 
-    if (config.tooltip) {
+    if (params.tooltip) {
       this.config.tooltip = Object.assign({
         prefix: '',
         suffix: ''
-      }, config.tooltip);
+      }, params.tooltip);
 
       this.tooltip = d3.select('body').append('div')
         .attr('class', 'tooltip')
@@ -89,8 +89,8 @@ export class Choropleth extends Nanobus {
       this.on('mouseout', this.hideTooltip.bind(this));
     }
 
-    if (config.map && maps.hasOwnProperty(config.map)) {
-      const mapConfig = maps[config.map];
+    if (params.map && maps.hasOwnProperty(params.map)) {
+      const mapConfig = maps[params.map];
 
       this.geoIdKey = mapConfig.key;
 
@@ -98,14 +98,18 @@ export class Choropleth extends Nanobus {
 
       this.mapFetch = fetch(mapConfig.path)
         .then(res => res.json())
-        .then(topojson => this.geojson = parseTopo(topojson));
+        .then(topojson => {
+          this.topojson = topojson;
+          this.geojson = parseTopo(topojson);
+        });
     } else {
-      this.geoIdKey = config.geoIdKey;
-      this.geojson = config.topojson ? parseTopo(config.topojson) : config.geosjon;
-      this.projection = config.projection || d3.geoMercator();
+      this.geoIdKey = params.geoIdKey;
+      this.topojson = params.topojson;
+      this.geojson = params.topojson ? parseTopo(params.topojson) : params.geosjon;
+      this.projection = params.projection || d3.geoMercator();
     }
 
-    this.setData(config.data);
+    this.setData(params.data);
 
     this.ready().then(() => { this.draw(); });
   }
