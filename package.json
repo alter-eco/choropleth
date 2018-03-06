@@ -1,6 +1,6 @@
 {
   "name": "@alter-eco/choropleth",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A choropleth function made with D3 and used at Alternatives Economiques",
   "main": "dist/main.js",
   "module": "es6/choropleth.js",
