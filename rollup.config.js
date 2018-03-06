@@ -22,7 +22,7 @@ export default {
       jsnext: true
     }),
     commonjs(),
-    sourcemaps()
-    // uglify()
+    sourcemaps(),
+    uglify()
   ]
 };
