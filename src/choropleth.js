@@ -3,9 +3,15 @@ import * as topojsonClient from 'topojson-client';
 import Nanobus from 'nanobus';
 import { legendColor } from 'd3-svg-legend';
 
-import locale from './locale.json';
-
 import MapConfig from '@alter-eco/geo';
+
+const locale = {
+  decimal: ',',
+  thousands: '.',
+  grouping: [3],
+  currency: ['', '\u00a0€'],
+  percent: '\u202f%'
+};
 
 const maps = MapConfig();
 

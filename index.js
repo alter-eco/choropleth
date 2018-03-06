@@ -1,8 +1,8 @@
 import { Choropleth } from './src/choropleth';
 
 export default {
-  create(config) {
-    const choropleth = new Choropleth(config);
+  create(params) {
+    const choropleth = new Choropleth(params);
 
     return choropleth;
   }
