@@ -1,0 +1,22 @@
+{
+  "extends": "idiomatic",
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true
+  },
+  "rules": {
+    "newline-before-return": 2,
+    "array-bracket-spacing": ["error", "never"],
+    "semi": ["error", "always"],
+    "vars-on-top": 0,
+    "brace-style": ["error", "1tbs", { "allowSingleLine": true }],
+    "computed-property-spacing": ["error", "never"],
+    "one-var": ["error", "never"],
+    "space-in-parens": ["error", "never"],
+    "func-names": ["error", "never"],
+    "no-multiple-empty-lines":  ["error", { "max": 1, "maxEOF": 1 }],
+    "space-before-blocks":  ["error", { "functions": "always", "keywords": "always", "classes": "always" }]
+  }
+}
