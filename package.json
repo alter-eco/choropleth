@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "A choropleth function made with D3 and used at Alternatives Economiques",
   "main": "dist/main.js",
-  "module": "index.js",
+  "module": "src/choropleth.js",
   "scripts": {
     "clean": "rm -rf ./dist/*",
     "development": "npm run clean && rollup -c --watch",
