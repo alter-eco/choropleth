@@ -1,18 +1,13 @@
 import * as d3 from './d3-custom.js';
-
-import { legendColor } from 'd3-svg-legend';
 import * as topojsonClient from 'topojson-client';
+import Nanobus from 'nanobus';
+import { legendColor } from 'd3-svg-legend';
 
 import locale from './locale.json';
 
-import * as nanobus from 'nanobus';
+import MapConfig from '@alter-eco/geo';
 
-const mapConfig = {
-  'european-union': {
-    key: 'ISO3',
-    path: '../geo/dist/european-union.json'
-  }
-};
+const maps = MapConfig();
 
 function parseTopo(topojson) {
   const topologyKey = Object.keys(topojson.objects)[0];
@@ -20,23 +15,11 @@ function parseTopo(topojson) {
   return topojsonClient.feature(topojson, topojson.objects[topologyKey]);
 }
 
-export class Choropleth {
+export class Choropleth extends Nanobus {
   constructor(config) {
+    super();
+
     this.format = d3.formatLocale(locale).format;
-
-    if (config.map && mapConfig.hasOwnProperty(config.map)) {
-      this.geoIdKey = mapConfig[config.map].key;
-
-      this.mapFetch = fetch(mapConfig[config.map].path)
-        .then(res => res.json())
-        .then(topojson => this.geojson = parseTopo(topojson));
-    } else if (config.topojson) {
-      this.geoIdKey = config.geoIdKey;
-      this.geojson = this.geojson = parseTopo(config.topojson);
-    } else if (config.geojson) {
-      this.geoIdKey = config.geoIdKey;
-      this.geojson = config.geojson;
-    }
 
     this.valueColumn = config.valueColumn ? config.valueColumn : 'value';
 
@@ -72,6 +55,9 @@ export class Choropleth {
         orientation: 'vertical',
         format: '.02f'
       }, config.legend);
+
+      this.on('setScale', () => this.updateLegend());
+      this.on('draw', () => this.updateLegend());
     }
 
     this.config.scale = Object.assign({
@@ -89,6 +75,34 @@ export class Choropleth {
       this.tooltip = d3.select('body').append('div')
         .attr('class', 'tooltip')
         .style('opacity', 0);
+
+      this.on('mouseover', d => {
+        const tooltipData = this.dataById[d.properties[this.geoIdKey]];
+
+        if (!tooltipData || tooltipData[this.selected] === '') {
+          return false;
+        } else {
+          this.showTooltip(tooltipData);
+        }
+      });
+
+      this.on('mouseout', this.hideTooltip.bind(this));
+    }
+
+    if (config.map && maps.hasOwnProperty(config.map)) {
+      const mapConfig = maps[config.map];
+
+      this.geoIdKey = mapConfig.key;
+
+      this.projection = d3[mapConfig.projection] ? d3[mapConfig.projection]() : d3.geoMercator();
+
+      this.mapFetch = fetch(mapConfig.path)
+        .then(res => res.json())
+        .then(topojson => this.geojson = parseTopo(topojson));
+    } else {
+      this.geoIdKey = config.geoIdKey;
+      this.geojson = config.topojson ? parseTopo(config.topojson) : config.geosjon;
+      this.projection = config.projection || d3.geoMercator();
     }
 
     this.setData(config.data);
@@ -110,6 +124,7 @@ export class Choropleth {
     </div>`;
 
     this.tooltip.html(markup)
+      .style('position', 'absolute')
       .style('left', `${d3.event.pageX}px`)
       .style('top', `${d3.event.pageY - 50}px`);
 
@@ -151,10 +166,6 @@ export class Choropleth {
   }
 
   updateLegend() {
-    if (!this.config.legend) {
-      return false;
-    }
-
     const legend = legendColor()
       .labelFormat(this.format(this.config.legend.format))
       .shapeWidth(50)
@@ -206,7 +217,7 @@ export class Choropleth {
         .range(this.config.scale.colors);
     }
 
-    this.updateLegend();
+    this.emit('setScale');
   }
 
   ready() {
@@ -218,10 +229,8 @@ export class Choropleth {
   }
 
   draw() {
-    this.updateLegend();
-
     const path = d3.geoPath()
-      .projection(d3.geoMercator()
+      .projection(this.projection
         .fitExtent([
           [0, 0],
           [this.drawWidth, this.drawHeight]
@@ -231,33 +240,15 @@ export class Choropleth {
       .selectAll('path')
       .data(this.geojson.features);
 
-    // enter
+    // enters
     this.layerSelect
       .enter()
       .append('path')
       .attr('d', path)
       .attr('fill', this.fill.bind(this))
-      .on('mouseover', d => {
-        if (!this.tooltip) {
-          return false;
-        }
+      .on('mouseover', d => this.emit('mouseover', d))
+      .on('mouseout', () => this.emit('mouseout'));
 
-        const tooltipData = this.dataById[d.properties[this.geoIdKey]];
-
-        if (!tooltipData || tooltipData[this.selected] === '') {
-          return false;
-        } else {
-          this.showTooltip(tooltipData);
-        }
-      })
-      .on('mouseout', () => {
-        if (!this.tooltip) {
-          return false;
-        }
-
-        this.hideTooltip();
-      });
+    this.emit('draw');
   }
 }
-
-Object.assign(Choropleth.prototype, nanobus);

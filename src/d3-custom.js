@@ -28,6 +28,8 @@ import {
   transition
 } from 'd3-transition';
 
+import { geoConicConformalFrance } from 'd3-composite-projections';
+
 export {
   event,
   select,
@@ -40,5 +42,6 @@ export {
   format,
   geoPath,
   geoMercator,
+  geoConicConformalFrance,
   transition
 };

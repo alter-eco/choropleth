@@ -24,20 +24,25 @@
 
     <script>
       var data = [{
-        ISO3: 'DEU',
+        code: '974',
         value: 1000
+      },{
+        code: '2B',
+        value: 200
+
       }];
 
-      Choropleth.create({
+      var choropleth = Choropleth.create({
         elem: '#container',
-        map: 'european-union',
+        map: 'france-departements-outre-mer',
         data: data,
         legend: true,
         scale: {
           type: 'linear',
           minColor: '#FFE25A',
           maxColor: 'blue',
-        }
+        },
+        tooltip: true
       });
     </script>
   </body>

@@ -1,13 +1,14 @@
 {
   "name": "@alter-eco/choropleth",
   "version": "0.0.9",
-  "description": "",
+  "description": "A choropleth function made with D3 and used at Alternatives Economiques",
   "main": "dist/main.js",
   "module": "index.js",
   "scripts": {
     "clean": "rm -rf ./dist/*",
     "development": "npm run clean && rollup -c --watch",
-    "build": "npm run clean && rollup -c"
+    "build": "npm run clean && rollup -c",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -15,6 +16,12 @@
   },
   "author": "laurencedorman",
   "license": "GPL-3.0",
+  "keywords": [
+    "d3",
+    "France",
+    "cartography",
+    "map"
+  ],
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
@@ -24,12 +31,16 @@
     "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-commonjs": "^8.4.0",
     "rollup-plugin-json": "^2.3.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.1.0",
     "rollup-plugin-node-resolve": "^3.0.3",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-uglify": "^3.0.0"
   },
   "dependencies": {
+    "@alter-eco/geo": "^0.2.1",
     "d3-array": "^1.2.1",
+    "d3-composite-projections": "git+https://git@github.com/alter-eco/d3-composite-projections.git",
     "d3-format": "^1.2.2",
     "d3-geo": "^1.9.1",
     "d3-scale": "^2.0.0",

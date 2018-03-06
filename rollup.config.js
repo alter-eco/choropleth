@@ -5,6 +5,9 @@ import resolve from 'rollup-plugin-node-resolve';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import uglify from 'rollup-plugin-uglify';
 
+import builtins from 'rollup-plugin-node-builtins';
+import globals from 'rollup-plugin-node-globals';
+
 export default {
   input: 'index.js',
   output: {
@@ -22,6 +25,8 @@ export default {
       jsnext: true
     }),
     commonjs(),
+    globals(),
+    builtins(),
     sourcemaps(),
     uglify()
   ]
