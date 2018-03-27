@@ -220,7 +220,7 @@ export class Choropleth extends Nanobus {
         .domain(domain)
         .range(range);
     } else if (this.config.scale.type === 'ordinal') {
-      domain = scaleData.filter((value, index, self) => self.indexOf(value) === index);
+      let domain = scaleData.filter((value, index, self) => self.indexOf(value) === index);
 
       this.scale = d3.scaleOrdinal()
         .domain(domain)

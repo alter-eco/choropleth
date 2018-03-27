@@ -27,7 +27,6 @@ export default {
     commonjs(),
     globals(),
     builtins(),
-    sourcemaps(),
-    uglify()
+    sourcemaps()
   ]
 };
