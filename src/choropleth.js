@@ -25,6 +25,8 @@ export class Choropleth extends Nanobus {
   constructor(params) {
     super();
 
+    this.d3 = d3;
+
     this.format = d3.formatLocale(locale).format;
 
     this.valueColumn = params.valueColumn ? params.valueColumn : 'value';
@@ -239,7 +241,7 @@ export class Choropleth extends Nanobus {
   }
 
   draw() {
-    const path = d3.geoPath()
+    this.path = d3.geoPath()
       .projection(this.projection
         .fitExtent([
           [0, 0],
@@ -254,7 +256,7 @@ export class Choropleth extends Nanobus {
     this.layerSelect
       .enter()
       .append('path')
-      .attr('d', path)
+      .attr('d', this.path)
       .attr('fill', this.fill.bind(this))
       .on('mouseover', d => this.emit('mouseover', d))
       .on('mouseout', () => this.emit('mouseout'));
