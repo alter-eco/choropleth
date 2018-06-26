@@ -68,11 +68,16 @@ export class Choropleth extends Nanobus {
       this.on('draw', () => this.updateLegend());
     }
 
-    this.config.scale = Object.assign({
-      type: 'linear',
-      minColor: 'blue',
-      maxColor: 'red'
-    }, params.scale);
+    if (typeof params.scale == 'function') {
+      this.config.scale = { type: 'custom' };
+      this.scale = params.scale;
+    } else {
+      this.config.scale = Object.assign({
+        type: 'linear',
+        minColor: 'blue',
+        maxColor: 'red'
+      }, params.scale);
+    }
 
     if (params.tooltip) {
       this.config.tooltip = Object.assign({
@@ -203,7 +208,9 @@ export class Choropleth extends Nanobus {
   setScale() {
     const scaleData = this.data.map(datum => datum[this.valueColumn]);
 
-    if (this.config.scale.type === 'linear') {
+    if (this.config.scale.type === 'custom') {
+      return false;
+    } else if (this.config.scale.type === 'linear') {
       let domain;
       let range;
 
