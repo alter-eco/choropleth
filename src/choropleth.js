@@ -44,6 +44,12 @@ export class Choropleth extends Nanobus {
     this.width = this.drawWidth = params.width ? params.width - (margin * 2) : rawWidth - (margin * 2);
     this.height = this.drawHeight = params.height ? params.height - (margin * 2) : rawHeight - (margin * 2);
 
+    if (params.aspectRatio) {
+      let base = this.width / params.aspectRatio[0];
+
+      this.height = this.drawHeight = base * params.aspectRatio[1];
+    }
+
     this.map = d3.select(params.elem)
       .append('svg')
       .attr('width', this.width + (margin * 2))
